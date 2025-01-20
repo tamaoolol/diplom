@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, StyleSheet, Button, View, Alert } from 'react-native';
+import { ScrollView, Text, Button, View, Alert, StyleSheet } from 'react-native';
 import { db } from './firebase';
+import { getAuth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QuestionComponent from './QuestionComponent';
+import { useTheme } from './ThemeContext';
+import { commonStyles } from './styles';
+import firebase from 'firebase/compat/app';
 
 const TestScreen = ({ route, navigation }) => {
   const { topic } = route.params;
@@ -10,6 +14,7 @@ const TestScreen = ({ route, navigation }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -28,6 +33,7 @@ const TestScreen = ({ route, navigation }) => {
   const handleAnswer = async (isCorrect) => {
     if (isCorrect) {
       setScore(score + 1);
+      await updateUserScore(1); // Обновление счета пользователя при правильном ответе
     }
 
     const nextQuestionIndex = currentQuestionIndex + 1;
@@ -36,6 +42,21 @@ const TestScreen = ({ route, navigation }) => {
     } else {
       setShowScore(true);
       await saveProgress(topic, score + (isCorrect ? 1 : 0));
+    }
+  };
+
+  const updateUserScore = async (increment) => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = db.collection('users').doc(user.uid);
+        await userRef.update({
+          score: firebase.firestore.FieldValue.increment(increment),
+        });
+      }
+    } catch (error) {
+      console.error('Error updating user score: ', error);
     }
   };
 
@@ -52,13 +73,14 @@ const TestScreen = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[commonStyles.container, { backgroundColor: theme.background }]}>
       {showScore ? (
         <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>Your score: {score} out of {questions.length}</Text>
+          <Text style={[styles.scoreText, { color: theme.text }]}>Your score: {score} out of {questions.length}</Text>
           <Button
             title="Back to Lessons"
             onPress={() => navigation.navigate('Lesson')}
+            color={theme.buttonBackground}
           />
         </View>
       ) : (
@@ -76,11 +98,6 @@ const TestScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#ffffff',
-  },
   scoreContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -95,6 +112,3 @@ const styles = StyleSheet.create({
 });
 
 export default TestScreen;
-
-
-

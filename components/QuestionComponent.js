@@ -1,40 +1,25 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button } from 'react-native';
+import { useTheme } from './ThemeContext';
+import { commonStyles } from './styles';
 
 const QuestionComponent = ({ question, options, answer, onAnswer }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.question}>{question}</Text>
+    <View style={[commonStyles.container, { backgroundColor: theme.background }]}>
+      <Text style={[commonStyles.question, { color: theme.text }]}>{question}</Text>
       {options && options.map((option, index) => (
-        <View style={styles.buttonContainer} key={index}>
+        <View style={commonStyles.buttonContainer} key={index}>
           <Button 
             title={option} 
             onPress={() => onAnswer(option === answer)} 
-            color="#0782F9" 
+            color={theme.buttonBackground} 
           />
         </View>
       ))}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    marginVertical: 10,
-    backgroundColor: '#ffffff',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#dddddd',
-  },
-  question: {
-    fontSize: 18,
-    marginBottom: 10,
-    color: '#333333',
-  },
-  buttonContainer: {
-    marginBottom: 10,
-  }
-});
 
 export default QuestionComponent;

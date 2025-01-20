@@ -1,63 +1,52 @@
 import React, { useState } from 'react';
-import { View, Button, StyleSheet, ScrollView, Text, TextInput } from 'react-native';
+import { View, Button, ScrollView, Text, TextInput, StyleSheet } from 'react-native';
+import { useTheme } from './ThemeContext';
+import { commonStyles } from './styles';
 
 const FreeCodeEditorScreen = () => {
   const [code, setCode] = useState('');
   const [output, setOutput] = useState('');
+  const { theme } = useTheme();
 
   const runCode = () => {
     let resultOutput = '';
     const consoleLog = console.log;
 
-    // Перехват console.log
     console.log = (message) => {
       resultOutput += message + '\n';
     };
 
     try {
-      // Создаем новую функцию для выполнения кода
       const resultFunction = new Function(code);
-      // Выполняем созданную функцию
       resultFunction();
     } catch (error) {
       resultOutput = 'Error: ' + error.message;
     }
 
-    // Восстанавливаем оригинальный console.log
     console.log = consoleLog;
     setOutput(resultOutput.trim() || 'No output');
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Редактор кода</Text>
+    <ScrollView contentContainerStyle={[commonStyles.container, { backgroundColor: theme.background }]}>
+      <Text style={[commonStyles.header, { color: theme.text }]}>Редактор кода</Text>
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, { backgroundColor: theme.inputBackground, color: theme.inputText }]}
         multiline
         numberOfLines={10}
         placeholder="Начни писать код JavaScript..."
         value={code}
         onChangeText={setCode}
+        placeholderTextColor={theme.inputText}
       />
-      <Button title="Запустить" onPress={runCode} />
-      <Text style={styles.resultHeader}>Вывод:</Text>
-      <Text style={styles.output}>{output}</Text>
+      <Button title="Запустить" onPress={runCode} color={theme.buttonBackground} />
+      <Text style={[styles.resultHeader, { color: theme.text }]}>Вывод:</Text>
+      <Text style={[styles.output, { color: theme.text }]}>{output}</Text>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#ffffff',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
   textInput: {
     height: 200,
     borderColor: '#cccccc',
@@ -72,7 +61,6 @@ const styles = StyleSheet.create({
   },
   output: {
     fontSize: 16,
-    color: '#333333',
     marginTop: 10,
   },
 });
